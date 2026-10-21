@@ -1,0 +1,22 @@
+# Local hardware inventories; regenerate with tools/Probe-AudioEndpoints.ps1.
+docs/endpoint-probe*.json
+build/
+out/
+.vs/
+.tools/
+**/bin/
+**/obj/
+artifacts/
+github-upload/
+tools/icon/node_modules/
+*.user
+*.suo
+*.log
+settings.json
+# Local development notes and export/diagnostic utilities.
+docs/
+ABOUT.md
+tools/Export-GitHub.ps1
+tools/AudioEndpointProbe.cs
+tools/Probe-AudioEndpoints.ps1
+tools/local-tests/

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/A2dpSinkRouter/Audio/PcmFormat.cs" Link="PcmFormat.cs" />
+    <Compile Include="../../src/A2dpSinkRouter/Audio/FrameQueue.cs" Link="FrameQueue.cs" />
+    <Compile Include="../../src/A2dpSinkRouter/Audio/RouteBuffer.cs" Link="RouteBuffer.cs" />
+    <Compile Include="../../src/A2dpSinkRouter/Audio/RouteStartGate.cs" Link="RouteStartGate.cs" />
+  </ItemGroup>
+</Project>

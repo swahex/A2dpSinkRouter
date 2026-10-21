@@ -1,0 +1,33 @@
+name: Windows build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build and run synthetic checks
+        shell: pwsh
+        run: ./tools/Build.ps1 -CheckAudioCore
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts/win-x64/* -DestinationPath artifacts/A2dpSinkRouter-win-x64.zip
+          (Get-FileHash artifacts/A2dpSinkRouter-win-x64.zip -Algorithm SHA256).Hash | Set-Content artifacts/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: A2dpSinkRouter-win-x64
+          path: |
+            artifacts/A2dpSinkRouter-win-x64.zip
+            artifacts/SHA256.txt
+          if-no-files-found: error
