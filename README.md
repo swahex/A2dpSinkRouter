@@ -1,8 +1,14 @@
 # A2DP Sink Router
 
-Receive Bluetooth audio from your phone on Windows, then send it to a chosen headset, speaker, or USB DAC through a dedicated WASAPI route.
+Receive Bluetooth audio from your phone on Windows, then route it directly to your preferred headset, speaker, or USB DAC through a dedicated WASAPI audio path.
 
-**No Windows “Listen to this device” required. No change to the system default output.** Designed to keep local routing buffers small; Bluetooth transport, drivers, and output hardware still determine total latency.
+Bypasses the built-in "Listen to this device" monitoring path in Windows and lets you select the playback device directly in the application, without requiring additional audio routing software.
+
+Designed for low-latency playback with configurable local buffering.
+
+**[Download Latest Release](https://github.com/swahex/A2dpSinkRouter/releases/latest)**
+
+![A2dpSinkRouter](images/main-window.png)
 
 ## Features
 
