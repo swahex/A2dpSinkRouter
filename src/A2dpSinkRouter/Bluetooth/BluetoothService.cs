@@ -49,17 +49,18 @@ internal sealed class BluetoothService : IAsyncDisposable
             {
                 try
                 {
-                    return _connection.State switch
-                    {
-                        AudioPlaybackConnectionState.Opened => "已连接",
-                        AudioPlaybackConnectionState.Closed => "未连接",
-                        _ => "等待连接"
-                    };
+                    return ReadState();
                 }
                 catch (COMException) { return "未连接"; }
                 catch (ObjectDisposedException) { return "未连接"; }
             }
         }
+        public string ReadState() => _connection.State switch
+        {
+            AudioPlaybackConnectionState.Opened => "已连接",
+            AudioPlaybackConnectionState.Closed => "未连接",
+            _ => "等待连接"
+        };
         public async Task OpenAsync(CancellationToken cancellation)
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);

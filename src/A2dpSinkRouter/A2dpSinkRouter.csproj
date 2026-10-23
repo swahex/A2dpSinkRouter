@@ -10,7 +10,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>A2dpSinkRouter</AssemblyName>
-    <Version>0.4.2</Version>
+    <Version>0.4.3</Version>
     <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
     <PathMap>$(MSBuildProjectDirectory)=/_/src/A2dpSinkRouter</PathMap>
     <ApplicationIcon>Assets/app.ico</ApplicationIcon>

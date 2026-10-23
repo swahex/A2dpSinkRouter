@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.3
+
+- Fix an intermittent reconnect failure after manually disconnecting a phone, where the application reported that the Bluetooth connection closed before opening completed.
+- Give Windows time to release the previous connection before reconnecting, allow the connection state to settle after opening, and retry a successful open that remains closed up to twice. Waiting and retries can be cancelled, and the UI continues to show the connecting state during recovery.
+- Preserve native errors and HRESULTs when validating connection state. Cancellation, timeouts, access denial and other native failures do not trigger automatic retries.
+- Add regression checks for delayed state updates, reconnect cooldown, retry limits, cancellation, retired callbacks and native error preservation.
+
 ## 0.4.2
 
 - Check the selected input's Windows "Listen to this device" setting when starting a route. If explicitly enabled, show a non-blocking notification and activity-log reminder about possible doubled audio or echo.
