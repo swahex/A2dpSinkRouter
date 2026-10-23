@@ -1,10 +1,8 @@
 # A2DP Sink Router
 
-Receive Bluetooth audio from your phone on Windows, then route it directly to your preferred headset, speaker, or USB DAC through a dedicated WASAPI audio path.
+Receive Bluetooth audio from your phone on Windows and play it through your preferred headset, speaker, or USB DAC.
 
-Bypasses the built-in "Listen to this device" monitoring path in Windows and lets you select the playback device directly in the application, without requiring additional audio routing software.
-
-Designed for low-latency playback with configurable local buffering.
+**Built to reduce local audio-routing latency by bypassing Windows "Listen to this device".** A dedicated, event-driven WASAPI route replaces the built-in monitoring bridge, with adjustable buffering and direct output selection. No additional audio routing software is required.
 
 **[Download Latest Release](https://github.com/swahex/A2dpSinkRouter/releases/latest)**
 
@@ -19,11 +17,26 @@ Designed for low-latency playback with configurable local buffering.
 - First-launch language selection, live Chinese/English switching, saved light/dark themes, and tray controls.
 - Minimal divider sections, responsive columns, fixed routing actions, and a separate activity log.
 
+## Why bypass "Listen to this device"?
+
+Windows can forward an A2DP input to a playback device through **Listen to this device**, but its monitoring buffers are managed by the system, with no prebuffer or engine-period controls in the Listen tab. Noticeable monitoring delay is a recurring complaint in vendor support and user feedback.
+
+**A2DP Sink Router replaces that bridge with a route designed for low latency.** Once Windows receives and decodes the Bluetooth audio, the app captures it through event-driven WASAPI and sends it to your chosen output through a bounded queue. It requests the minimum supported shared-engine period, compensates for input/output clock differences, and trims excessive backlog so stale audio does not keep accumulating. You can tune the prebuffer to balance responsiveness and smooth playback, or use exclusive output on compatible devices.
+
+| | Windows "Listen to this device" | A2DP Sink Router |
+| --- | --- | --- |
+| Local latency tuning | System-managed monitoring; no prebuffer or engine-period controls in the Listen tab | Adjustable 5–100 ms prebuffer, 12 ms default; requests the minimum supported shared-engine period |
+| Buffer management | Monitoring queue behavior is not exposed in the Listen tab | Bounded queue, clock-drift compensation and excess-backlog trimming |
+| Playback destination | Configured in Windows recording-device properties | Select an explicit headset, speaker or DAC in the app without changing the system default; remember routing per phone |
+| Route controls | Enable or disable monitoring in Windows sound properties | Start/stop, volume, mute and cancellation of a pending route in one window |
+| Troubleshooting | No monitoring queue or underrun counters in the Listen tab | Queue time, device periods, frame counts, underruns and dropped frames |
+
+
 ## Requirements
 
 - Windows 10 2004 (build 19041) or later, x64.
 - A Bluetooth adapter, drivers, and phone compatible with the Windows A2DP sink path.
-- **.NET 8 Desktop Runtime x64** for framework-dependent packages. Self-contained builds include the runtime.
+- **.NET 10 Desktop Runtime x64** for framework-dependent packages. Self-contained builds include the runtime.
 - Pair the phone in Windows Bluetooth settings before use.
 
 ## Usage
@@ -42,9 +55,13 @@ Smaller buffers are more sensitive to packet arrival jitter and clock difference
 
 Settings and logs are stored in `%LOCALAPPDATA%\A2dpSinkRouter\`. Levels, frame counts, queue times, and device periods are diagnostic values, not end-to-end Bluetooth latency measurements.
 
+This is a portable application. To remove it, exit from the tray and delete its extracted folder. To also clear saved settings and logs, remove `%LOCALAPPDATA%\A2dpSinkRouter\`; **Preferences → Open data folder** opens that location. Bluetooth pairings and separately installed .NET runtimes are managed by Windows.
+
+The launch preference connects the last selected phone once at startup; it does not silently retry forever or restart an audio route. Manual reconnect releases the old phone session. While connecting, **Disconnect** becomes **Cancel connection**. Stopping routing keeps Bluetooth connected; disconnecting also cancels a pending route.
+
 ## Build
 
-Install the .NET 8 SDK on Windows, then run from the repository root:
+Install the .NET 10 SDK on Windows, then run from the repository root. `global.json` selects a stable .NET 10 SDK:
 
 ```powershell
 .\tools\Build.ps1
@@ -55,6 +72,9 @@ Install the .NET 8 SDK on Windows, then run from the repository root:
 
 # Optional: synthetic algorithm checks; no sound card or Bluetooth access
 .\tools\Build.ps1 -CheckAudioCore
+
+# Build, test and ZIP both deployment modes, including SHA-256 checksums
+.\tools\Package.ps1
 ```
 
 Node.js is not required to build the application. Icon assets are committed. To regenerate them:
@@ -64,19 +84,17 @@ npm install --prefix tools/icon @napi-rs/canvas
 node tools/Draw-Icon.cjs
 ```
 
-The included GitHub Actions workflow builds on Windows, runs synthetic checks, and uploads a framework-dependent package as a workflow artifact.
+Choose the **self-contained** ZIP for a machine without .NET installed, or the smaller **framework-dependent** ZIP when .NET 10 Desktop Runtime x64 is already installed. Both packages must be fully extracted. Self-contained builds bundle their own runtime; runtime security fixes require rebuilding and replacing the application package.
+
+Normal pushes to `main` and pull requests targeting `main` run the Windows build and synthetic checks. A matching version tag such as `v0.4.2` runs the release checks, packages both deployment modes and their checksums, and creates a **draft** GitHub Release using that version's changelog entry. Review the notes and assets before publishing it. Manual CI runs remain available.
+
+The existing Windows API baseline remains build 19041. This is an application compatibility target, not a promise of Microsoft support for every Windows version above that build. See the [.NET Windows support matrix](https://learn.microsoft.com/dotnet/core/install/windows) for supported operating systems; test the package on the intended Windows version.
 
 ## Architecture and limits
 
-```text
-Phone → Windows A2DP sink → A2DP capture endpoint
-      → WASAPI capture → bounded queue / resampling / clock compensation
-      → WASAPI render → selected output device
-```
+Windows `AudioPlaybackConnection` manages Bluetooth reception. The data path calls Core Audio directly. One input routes to one output; ASIO, multiple outputs, EQ, and recording are not implemented. Device loss stops an active route and reports an error; starting again is required.
 
-Windows `AudioPlaybackConnection` manages Bluetooth reception. The data path calls Core Audio directly. One input routes to one output; ASIO, multiple outputs, EQ, and recording are not implemented. Device loss stops an active route and reports an error; starting again is required. Sleep recovery, cross-monitor DPI behavior, and hardware compatibility need practical verification.
-
-Automated checks cover synthetic audio buffers and device-free UI previews. They do not verify Bluetooth hardware compatibility or end-to-end latency.
+Hardware testing by the maintainer confirmed normal operation across multiple phones, PCs and headsets. Automated regression checks additionally cover synthetic audio buffers, connection lifecycle, Listen-setting detection and device-free UI previews.
 
 ## Contributing
 

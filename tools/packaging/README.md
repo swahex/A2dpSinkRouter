@@ -1,10 +1,10 @@
-# A2DP Sink Router 0.3.5
+# A2DP Sink Router {{VERSION}}
 
 Receive phone audio over Bluetooth on Windows and route it to a chosen output through WASAPI. Windows **Listen to this device** is not required, and the system default output is unchanged.
 
 ## Requirements
 
-Windows 10 2004 (build 19041) or later, x64. This framework-dependent package requires **.NET 8 Desktop Runtime x64**. Extract all files together and run `A2dpSinkRouter.exe`. Exit an older running version before upgrading.
+Windows 10 2004 (build 19041) or later, x64. {{RUNTIME_REQUIREMENT}} Extract all files together and run `A2dpSinkRouter.exe`. Exit an older running version before upgrading.
 
 ## Usage
 
@@ -27,10 +27,12 @@ Audio endpoint availability refreshes automatically. Device loss stops an active
 
 Smaller buffers are more sensitive to packet arrival jitter and clock differences; the default does not guarantee stable playback on every device. If playback breaks up or the underrun count keeps rising, stop routing, increase the prebuffer (try 40 ms first), and restart routing. A larger buffer adds local waiting time.
 
+This is a portable application: exit from the tray and delete the extracted folder to remove it. To also clear saved settings and logs, remove `%LOCALAPPDATA%\A2dpSinkRouter\`. **Preferences → Open data folder** opens that location. Bluetooth pairings and separately installed .NET runtimes are managed by Windows.
+
 ## Diagnostics and documentation
 
 Open **Activity log** for diagnostics. Settings and logs are stored in `%LOCALAPPDATA%\A2dpSinkRouter\`. Logs may include device names and identifiers; sanitize them before sharing.
 
-Queue times and device periods are not end-to-end Bluetooth latency measurements. Synthetic algorithm checks and UI previews do not cover hardware compatibility, sleep recovery, or end-to-end latency.
+Hardware testing by the maintainer confirmed normal operation across multiple phones, PCs and headsets. Queue times and device periods are local diagnostics, not end-to-end Bluetooth latency measurements.
 
 See [changelog](../../CHANGELOG.md), [license](../../LICENSE), and [third-party notices](../../THIRD_PARTY_NOTICES.md).

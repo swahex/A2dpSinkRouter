@@ -20,6 +20,7 @@ internal sealed partial class MainForm
     private readonly ToolStripMenuItem _enItem = new("English");
     private readonly ToolStripMenuItem _toTrayItem = new();
     private readonly ToolStripMenuItem _exitItem = new();
+    private readonly ToolStripMenuItem _dataDirectoryItem = new();
     private readonly ToolStripMenuItem _closeToTray = new() { CheckOnClick = true };
     private readonly ContextMenuStrip _trayMenu = new();
     private readonly ToolTip _tips = new() { AutoPopDelay = 12000, InitialDelay = 400 };
@@ -94,12 +95,19 @@ internal sealed partial class MainForm
         MenuText(_lightItem, "亮色", "Light"); MenuText(_darkItem, "暗色", "Dark");
         MenuText(_toTrayItem, "收起到托盘", "Minimize to tray");
         MenuText(_exitItem, "退出程序", "Exit application");
+        MenuText(_dataDirectoryItem, "打开数据目录", "Open data folder");
         MenuText(_closeToTray, "关闭窗口时收起到托盘", "Close window to the system tray");
         MenuText(_reconnect, "启动时连接上次的手机", "Connect last phone on launch");
         _languageMenu.DropDownItems.AddRange([_zhItem, _enItem]);
         _windowMenu.DropDownItems.AddRange([_toTrayItem, new ToolStripSeparator(), _exitItem]);
         _appearanceMenu.DropDownItems.AddRange([_lightItem, _darkItem]);
-        _preferencesMenu.DropDownItems.AddRange([_appearanceMenu, new ToolStripSeparator(), _closeToTray, _reconnect]);
+        _preferencesMenu.DropDownItems.AddRange([_appearanceMenu, new ToolStripSeparator(), _closeToTray, _reconnect, new ToolStripSeparator(), _dataDirectoryItem]);
+        _dataDirectoryItem.Click += (_, _) =>
+        {
+            if (_preview) return;
+            Directory.CreateDirectory(Settings.DirectoryPath);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Settings.DirectoryPath) { UseShellExecute = true });
+        };
         _lightItem.Click += (_, _) => ChangeAppearance(false);
         _darkItem.Click += (_, _) => ChangeAppearance(true);
         _zhItem.Click += (_, _) => ChangeLanguage("zh-CN");

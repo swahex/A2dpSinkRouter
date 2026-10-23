@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace A2dpSinkRouter.Audio;
 
-internal sealed record AudioEndpoint(string Id, string Name, int Flow, uint State, Guid? ContainerId)
+internal sealed record AudioEndpoint(string Id, string Name, int Flow, uint State, Guid? ContainerId, bool? ListenEnabled = null)
 {
     public bool IsActive => State == 1;
     public bool IsA2dp => Flow == 1 && Name.Contains("A2DP", StringComparison.OrdinalIgnoreCase);
@@ -36,7 +36,8 @@ internal static class EndpointCatalog
                             {
                                 string? name = ReadProperty(store, new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), 14);
                                 string? container = ReadProperty(store, new Guid("8c7ed206-3f8a-4827-b3ab-ae9e1faefc6c"), 2);
-                                if (name is not null) result.Add(new(id, name, flow, state, Guid.TryParse(container, out var g) ? g : null));
+                                bool? listen = flow == 1 && state == 1 ? ReadListenEnabled(store) : null;
+                                if (name is not null) result.Add(new(id, name, flow, state, Guid.TryParse(container, out var g) ? g : null, listen));
                             }
                             finally { Native.Release(store); }
                         }
@@ -48,6 +49,23 @@ internal static class EndpointCatalog
         }
         finally { Native.Release(enumerator); }
         return result.OrderByDescending(e => e.IsActive).ThenBy(e => e.Name).ToList();
+    }
+
+    internal static bool? ReadListenEnabled(IPropertyStore store)
+    {
+        // Best-effort only: this Listen key is not a documented Windows contract.
+        // Missing properties, unexpected types and read failures mean unknown.
+        // Never write the property or block routing because it cannot be read.
+        var key = new PropertyKey { FormatId = new("24dbb0fc-9311-4b3d-9cf0-18ff155639d4"), PropertyId = 1 };
+        PropVariant value = default;
+        try
+        {
+            int hr = store.GetValue(ref key, out value);
+            return hr >= 0 && value.Type == 11 ? value.Boolean != 0 : null;
+        }
+        catch (COMException) { return null; }
+        catch (UnauthorizedAccessException) { return null; }
+        finally { Native.PropVariantClear(ref value); }
     }
 
     private static string? ReadProperty(IPropertyStore store, Guid guid, uint pid)

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.2
+
+- Check the selected input's Windows "Listen to this device" setting when starting a route. If explicitly enabled, show a non-blocking notification and activity-log reminder about possible doubled audio or echo.
+- Keep routing available when the setting is absent or unreadable. The check is read-only and does not change Windows sound settings.
+
+Validation: The maintainer verified normal operation across multiple phones, PCs and headsets. Release builds and offline audio, connection lifecycle and endpoint-property regression checks passed.
+
+## 0.4.1
+
+- Move the application and offline regression checks to .NET 10 LTS.
+- Provide self-contained and framework-dependent release packages with SHA-256 checksums.
+- Read the window title and package version from the project assembly/version metadata.
+- Release the previous phone on reconnect/switch, allow cancelling a connection attempt, ignore retired connection callbacks, and preserve the startup phone when it is temporarily unavailable.
+- Add device-free connection lifecycle regression checks.
+
+The audio routing algorithm is unchanged. Validation covers Release builds, offline audio and connection lifecycle checks, and device-free UI previews.
+
 ## 0.3.5
 
 No changes to audio routing behavior from 0.3.4.
@@ -14,7 +31,7 @@ Includes the clock-feedback fix and offline regression checks listed under 0.3.3
 - Add offline checks for independent clock drift, packet jitter and bursts, prebuffer boundaries, pause/resume, and backlog recovery.
 - Report failed audio core checks with diagnostics and exit code 1 instead of an unhandled exception dialog.
 
-Validation: Synthetic audio checks and device-free UI previews; no new hardware audio or end-to-end latency measurements.
+Validation: Synthetic audio checks and device-free UI previews.
 
 ## 0.3.2
 
@@ -35,7 +52,7 @@ Validation: Synthetic audio checks and device-free UI previews; no new hardware 
 - Redraw the icon as simple headphones with no microphone arm; export size-specific ICO layers, PNG, and SVG.
 - Add repository templates and Windows build automation.
 
-Validation: Release build and device-free UI previews. No hardware audio or latency measurements.
+Validation: Release build and device-free UI previews.
 
 ## 0.2.1
 

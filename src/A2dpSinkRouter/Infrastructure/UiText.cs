@@ -28,6 +28,7 @@ internal static class UiText
     }
     private static readonly KeyValuePair<string, string>[] EngineTerms =
     [
+        new("蓝牙连接在打开完成前已关闭，请重新连接。", "The Bluetooth connection closed before opening completed. Reconnect the phone."),
         new("不支持此端点的采样率、声道布局或位深。", "Unsupported sample rate, channel layout, or bit depth."),
         new("设备不支持当前采样率的独占输出格式，请关闭独占选项后重试。", "Exclusive output is unavailable at this sample rate. Try shared output."),
         new("音频设备未响应事件，路由已停止。请检查设备连接后重新启动。", "The audio device stopped responding. Check its connection and restart the route."),

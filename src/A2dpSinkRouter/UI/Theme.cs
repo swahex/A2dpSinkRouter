@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
 namespace A2dpSinkRouter.UI;
@@ -88,6 +89,7 @@ internal sealed class AppButton : Button
 {
     private bool _hover, _pressed;
     private ButtonTone _tone;
+    [DefaultValue(ButtonTone.Secondary)]
     public ButtonTone Tone { get => _tone; set { if (_tone == value) return; _tone = value; Invalidate(); } }
     public AppButton()
     {
@@ -173,6 +175,7 @@ internal sealed class SurfaceCard : Panel
 internal sealed class StatusBadge : Control
 {
     private Color _accent = Theme.Muted;
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Color Accent { get => _accent; set { if (_accent == value) return; _accent = value; Invalidate(); } }
     public StatusBadge() { DoubleBuffered = true; }
     protected override void OnTextChanged(EventArgs e) { base.OnTextChanged(e); Invalidate(); }
@@ -186,6 +189,7 @@ internal sealed class StatusBadge : Control
 internal sealed class LevelMeter : Control
 {
     private int _value;
+    [DefaultValue(0)]
     public int Value { get => _value; set { int next = Math.Clamp(value, 0, 1000); if (_value == next) return; _value = next; Invalidate(); } }
     public LevelMeter() { DoubleBuffered = true; Height = 8; Dock = DockStyle.Top; }
     protected override void OnPaint(PaintEventArgs e)
@@ -202,6 +206,7 @@ internal sealed class LevelMeter : Control
 internal sealed class VolumeSlider : Control
 {
     private int _value = 100;
+    [DefaultValue(100)]
     public int Value { get => _value; set { int v = Math.Clamp(value, 0, 100); if (_value == v) return; _value = v; Invalidate(); ValueChanged?.Invoke(this, EventArgs.Empty); } }
     public event EventHandler? ValueChanged;
     public VolumeSlider() { DoubleBuffered = true; TabStop = true; Height = 32; Dock = DockStyle.Fill; AccessibleRole = AccessibleRole.Slider; Cursor = Cursors.Hand; }

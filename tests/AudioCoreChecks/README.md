@@ -1,6 +1,6 @@
 # Audio core checks
 
-Run from the repository root with the .NET 8 SDK:
+Run from the repository root with the .NET 10 SDK:
 
 ```powershell
 dotnet run --project tests/AudioCoreChecks -c Release

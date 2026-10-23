@@ -49,6 +49,8 @@ internal sealed partial class MainForm : Form
     private string? _waitingMessage;
     private readonly bool _preview;
     private bool _exitRequested;
+    private CancellationTokenSource? _connectCancellation;
+    private readonly Dictionary<string, string> _lastBluetoothStates = new();
 
     public MainForm(bool preview = false, string? previewLanguage = null)
     {
@@ -58,7 +60,7 @@ internal sealed partial class MainForm : Form
         catch (Exception ex) { _settings = new(); loadError = ex.Message; }
         UiText.Language = previewLanguage ?? _settings.Language;
         Theme.Dark = _settings.Appearance == "dark";
-        Text = "A2DP Sink Router 0.3.5";
+        Text = $"A2DP Sink Router {typeof(MainForm).Assembly.GetName().Version?.ToString(3)}";
         DoubleBuffered = true;
         AutoScaleDimensions = new(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -85,12 +87,16 @@ internal sealed partial class MainForm : Form
         _tray = new NotifyIcon { Icon = Icon, Text = "A2DP Sink Router", ContextMenuStrip = _trayMenu, Visible = !preview };
         _tray.DoubleClick += (_, _) => ShowPanel();
         _connect.Click += (_, _) => BeginOperation(ConnectAsync);
-        _disconnect.Click += (_, _) => BeginOperation(async () =>
+        _disconnect.Click += (_, _) =>
         {
-            await StopRouteAsync();
-            if (_phones.SelectedItem is BluetoothSource phone) await _bluetooth.DisconnectAsync(phone.Id);
-            UpdateConnectionState();
-        });
+            if (_connectCancellation is not null) { _connectCancellation.Cancel(); return; }
+            BeginOperation(async () =>
+            {
+                await StopRouteAsync();
+                if (_phones.SelectedItem is BluetoothSource phone) await _bluetooth.DisconnectAsync(phone.Id);
+                UpdateConnectionState();
+            });
+        };
         _refresh.Click += (_, _) => BeginOperation(RefreshDevicesAsync);
         _start.Click += (_, _) => BeginOperation(StartRouteAsync);
         _stop.Click += (_, _) => BeginOperation(StopRouteAsync);
@@ -103,7 +109,20 @@ internal sealed partial class MainForm : Form
         _bluetooth.StateChanged += (id, state) =>
         {
             if (_closing || !IsHandleCreated) return;
-            try { BeginInvoke(() => { if (_closing) return; Log(F("蓝牙：{0}", "Bluetooth: {0}", Connection(state))); UpdateConnectionState(); _nextEndpointCheck = DateTime.MinValue; }); }
+            try
+            {
+                BeginInvoke(() =>
+                {
+                    if (_closing) return;
+                    string current = _bluetooth.State(id);
+                    if (!_lastBluetoothStates.TryGetValue(id, out var last) || last != current)
+                    {
+                        _lastBluetoothStates[id] = current;
+                        Log(F("蓝牙：{0}", "Bluetooth: {0}", Connection(current)));
+                    }
+                    UpdateConnectionState(); _nextEndpointCheck = DateTime.MinValue;
+                });
+            }
             catch (InvalidOperationException) { }
         };
         _timer.Tick += (_, _) =>
@@ -295,7 +314,11 @@ internal sealed partial class MainForm : Form
         SaveSelections();
         await StopRouteAsync();
         Log(F("正在连接 {0}…", "Connecting to {0}…", phone.Name));
-        await _bluetooth.ConnectAsync(phone, _lifetime.Token);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _connectCancellation = cancellation; UpdateButtons();
+        try { await _bluetooth.ConnectAsync(phone, cancellation.Token); }
+        finally { _connectCancellation = null; if (!_closing) UpdateButtons(); }
+        if (_closing) return;
         await RefreshDevicesAsync();
         _nextEndpointCheck = DateTime.MinValue;
         Log(T("手机已连接。点击开始路由，再在手机播放音频即可。", "Phone connected. Start the route, then play audio on your phone."));
@@ -346,6 +369,13 @@ internal sealed partial class MainForm : Form
         Log(F("路由已启动：{0} → {1}", "Route started: {0} → {1}", input.Name, output.Name));
         Log(F("输入 ID：{0}；输出 ID：{1}；预缓冲 {2} ms；音量 {3}%；静音 {4}", "Input ID: {0}; output ID: {1}; prebuffer {2} ms; volume {3}%; muted {4}", input.Id, output.Id, _buffer.Value, _volume.Value, _mute.Checked));
         Log(Engine(_router.Status.Description.Replace('\n', ' ')));
+        if (input.ListenEnabled == true)
+        {
+            string warning = T("所选输入已开启 Windows“侦听此设备”，可能出现双声或回声。可在声音控制面板 → 录制 → 该输入的属性 → 侦听中关闭；路由继续运行。",
+                "Windows 'Listen to this device' is enabled for this input and may cause doubled audio or echo. Disable it in Sound control panel > Recording > input Properties > Listen. Routing continues.");
+            Log(warning);
+            _tray.ShowBalloonTip(8000, T("检测到系统侦听", "Windows monitoring detected"), warning, ToolTipIcon.Warning);
+        }
         _lastTelemetry = DateTime.MinValue;
     }
     private async Task StopRouteAsync()
@@ -365,7 +395,7 @@ internal sealed partial class MainForm : Form
         if (_sourceId is not null) _settings.Routes.TryGetValue(_sourceId, out previous);
         _settings.InputId = (_inputs.SelectedItem as AudioEndpoint)?.Id ?? (_sourceId is null ? _settings.InputId : previous?.InputId);
         _settings.OutputId = (_outputs.SelectedItem as AudioEndpoint)?.Id ?? (_sourceId is null ? _settings.OutputId : previous?.OutputId);
-        _settings.LastBluetoothId = _sourceId;
+        if (_sourceId is not null) _settings.LastBluetoothId = _sourceId;
         _settings.BufferMs = (int)_buffer.Value; _settings.Volume = _volume.Value;
         _settings.Muted = _mute.Checked; _settings.ReconnectOnStart = _reconnect.Checked;
         _settings.ShowAllInputs = _allInputs.Checked;
@@ -429,7 +459,9 @@ internal sealed partial class MainForm : Form
     {
         bool running = _router.Status.Running;
         bool waiting = _routeStart.Requested is not null;
-        _connect.Enabled = _disconnect.Enabled = _refresh.Enabled = !_busy;
+        _connect.Enabled = _refresh.Enabled = !_busy;
+        _disconnect.Enabled = !_closing && (!_busy || _connectCancellation is not null);
+        _disconnect.Text = _connectCancellation is not null ? T("取消连接", "Cancel connection") : T("断开", "Disconnect");
         _start.Enabled = !_busy && !running && !waiting; _stop.Enabled = !_busy && (running || waiting);
         _stop.Text = waiting ? T("取消等待", "Cancel waiting") : T("停止路由", "Stop");
         _phones.Enabled = _inputs.Enabled = _outputs.Enabled = _allInputs.Enabled = _buffer.Enabled = !_busy && !running && !waiting;
@@ -468,12 +500,10 @@ internal sealed partial class MainForm : Form
         SaveSelections();
         try
         {
-            await _operation;
-            await _endpointMonitor;
-            await StopRouteAsync();
-            await _bluetooth.DisposeAsync();
+            foreach (var cleanup in new Func<Task>[] { () => _operation, () => _endpointMonitor, StopRouteAsync, () => _bluetooth.DisposeAsync().AsTask() })
+                try { await cleanup(); }
+                catch (Exception ex) { Log(T("退出清理：", "Shutdown cleanup: ") + Engine(ex.Message)); }
         }
-        catch (Exception ex) { Log(T("退出清理：", "Shutdown cleanup: ") + Engine(ex.Message)); }
         finally
         {
             _layoutTimer.Dispose(); _router.Dispose(); _tray.Dispose(); _timer.Dispose(); _lifetime.Dispose(); _tips.Dispose(); _mark.Image?.Dispose();
