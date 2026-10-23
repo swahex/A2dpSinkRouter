@@ -1,5 +1,7 @@
 # A2DP Sink Router
 
+English | [简体中文](README.zh-CN.md)
+
 Receive Bluetooth audio from your phone on Windows and play it through your preferred headset, speaker, or USB DAC.
 
 **Built to reduce local audio-routing latency by bypassing Windows "Listen to this device".** A dedicated, event-driven WASAPI route replaces the built-in monitoring bridge, with adjustable buffering and direct output selection. No additional audio routing software is required.
@@ -35,7 +37,7 @@ Windows can forward an A2DP input to a playback device through **Listen to this 
 ## Requirements
 
 - Windows 10 2004 (build 19041) or later, x64.
-- A Bluetooth adapter, drivers, and phone compatible with the Windows A2DP sink path.
+- The PC must have working Bluetooth functionality and already be paired with the phone in Windows Bluetooth settings. The phone and Windows Bluetooth drivers must support A2DP reception.
 - **.NET 10 Desktop Runtime x64** for framework-dependent packages. Self-contained builds include the runtime.
 - Pair the phone in Windows Bluetooth settings before use.
 
@@ -53,9 +55,11 @@ The default prebuffer target is 12 ms, adjustable from 5 to 100 ms. Stop routing
 
 Smaller buffers are more sensitive to packet arrival jitter and clock differences; the default does not guarantee stable playback on every device. If playback breaks up or the underrun count keeps rising, stop routing, increase the prebuffer (try 40 ms first), and restart routing. A larger buffer adds local waiting time.
 
-Settings and logs are stored in `%LOCALAPPDATA%\A2dpSinkRouter\`. Levels, frame counts, queue times, and device periods are diagnostic values, not end-to-end Bluetooth latency measurements.
+Portable ZIP settings and logs are stored in `%LOCALAPPDATA%\A2dpSinkRouter\`. Levels, frame counts, queue times, and device periods are diagnostic values, not end-to-end Bluetooth latency measurements.
 
 This is a portable application. To remove it, exit from the tray and delete its extracted folder. To also clear saved settings and logs, remove `%LOCALAPPDATA%\A2dpSinkRouter\`; **Preferences → Open data folder** opens that location. Bluetooth pairings and separately installed .NET runtimes are managed by Windows.
+
+See the [privacy policy](PRIVACY.md) for information about local audio processing, settings and logs.
 
 The launch preference connects the last selected phone once at startup; it does not silently retry forever or restart an audio route. Manual reconnect releases the old phone session. While connecting, **Disconnect** becomes **Cancel connection**. Stopping routing keeps Bluetooth connected; disconnecting also cancels a pending route.
 
@@ -90,13 +94,15 @@ Normal pushes to `main` and pull requests targeting `main` run the Windows build
 
 The existing Windows API baseline remains build 19041. This is an application compatibility target, not a promise of Microsoft support for every Windows version above that build. See the [.NET Windows support matrix](https://learn.microsoft.com/dotnet/core/install/windows) for supported operating systems; test the package on the intended Windows version.
 
-## Architecture and limits
+## Architecture
 
-Windows `AudioPlaybackConnection` manages Bluetooth reception. The data path calls Core Audio directly. One input routes to one output; ASIO, multiple outputs, EQ, and recording are not implemented. Device loss stops an active route and reports an error; starting again is required.
+Windows `AudioPlaybackConnection` manages Bluetooth reception. The data path calls Core Audio directly, capturing the selected input and routing it through bounded buffering, resampling and device-clock compensation to the selected WASAPI output.
 
-Hardware testing by the maintainer confirmed normal operation across multiple phones, PCs and headsets. Automated regression checks additionally cover synthetic audio buffers, connection lifecycle, Listen-setting detection and device-free UI previews.
+Hardware testing by the maintainer confirmed normal operation across multiple phones, PCs and headsets using built-in PC Bluetooth. External USB Bluetooth dongles have not been validated. Automated regression checks additionally cover synthetic audio buffers, connection lifecycle, Listen-setting detection and device-free UI previews.
 
 ## Contributing
+
+For usage questions and bug reports, use [GitHub Issues](https://github.com/swahex/A2dpSinkRouter/issues). Issues are public; do not post personal information or unredacted logs. Follow [SECURITY.md](SECURITY.md) for sensitive security reports.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECURITY.md](SECURITY.md). Include your application version, Windows version, reproduction steps, and sanitized diagnostics in bug reports. Logs may contain device names and identifiers; review them before posting publicly.
 
