@@ -73,7 +73,7 @@ Install the .NET 10 SDK on Windows, then run from the repository root. `global.j
 # Optional: synthetic algorithm checks; no sound card or Bluetooth access
 .\tools\Build.ps1 -CheckAudioCore
 
-# Build, test and ZIP both deployment modes, including SHA-256 checksums
+# Build, test and ZIP both deployment modes
 .\tools\Package.ps1
 ```
 
@@ -86,7 +86,7 @@ node tools/Draw-Icon.cjs
 
 Choose the **self-contained** ZIP for a machine without .NET installed, or the smaller **framework-dependent** ZIP when .NET 10 Desktop Runtime x64 is already installed. Both packages must be fully extracted. Self-contained builds bundle their own runtime; runtime security fixes require rebuilding and replacing the application package.
 
-Normal pushes to `main` and pull requests targeting `main` run the Windows build and synthetic checks. A matching version tag such as `v0.4.2` runs the release checks, packages both deployment modes and their checksums, and creates a **draft** GitHub Release using that version's changelog entry. Review the notes and assets before publishing it. Manual CI runs remain available.
+Normal pushes to `main` and pull requests targeting `main` run the Windows build and synthetic checks. A matching version tag such as `v0.4.2` runs the release checks, packages both deployment modes, and creates a **draft** GitHub Release using that version's changelog entry. Review the notes and assets before publishing it. Manual CI runs remain available.
 
 The existing Windows API baseline remains build 19041. This is an application compatibility target, not a promise of Microsoft support for every Windows version above that build. See the [.NET Windows support matrix](https://learn.microsoft.com/dotnet/core/install/windows) for supported operating systems; test the package on the intended Windows version.
 

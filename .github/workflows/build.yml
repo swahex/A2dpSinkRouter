@@ -25,11 +25,8 @@ jobs:
         shell: pwsh
         run: |
           Compress-Archive -Path artifacts/win-x64/* -DestinationPath artifacts/A2dpSinkRouter-win-x64.zip
-          (Get-FileHash artifacts/A2dpSinkRouter-win-x64.zip -Algorithm SHA256).Hash | Set-Content artifacts/SHA256.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: A2dpSinkRouter-win-x64
-          path: |
-            artifacts/A2dpSinkRouter-win-x64.zip
-            artifacts/SHA256.txt
+          path: artifacts/A2dpSinkRouter-win-x64.zip
           if-no-files-found: error

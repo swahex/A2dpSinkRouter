@@ -27,7 +27,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-packages
-          path: artifacts/release/*
+          path: artifacts/release/A2dpSinkRouter-*-win-x64-*.zip
           if-no-files-found: error
 
   draft:
@@ -53,6 +53,6 @@ jobs:
           $section = [regex]::Match((Get-Content -LiteralPath CHANGELOG.md -Raw), $pattern)
           if (!$section.Success) { throw "No changelog entry for $version." }
           [IO.File]::WriteAllText((Join-Path $PWD 'release-notes.md'), $section.Groups['notes'].Value.Trim(), [Text.UTF8Encoding]::new($false))
-          $assets = @(Get-ChildItem -LiteralPath release -File | ForEach-Object FullName)
+          $assets = @(Get-ChildItem -LiteralPath release -Filter '*.zip' -File | ForEach-Object FullName)
           gh release create $env:RELEASE_TAG @assets --verify-tag --draft --notes-file release-notes.md --title "A2DP Sink Router $version"
           if ($LASTEXITCODE -ne 0) { throw 'Draft release creation failed. Existing releases are never overwritten.' }

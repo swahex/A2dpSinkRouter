@@ -15,14 +15,12 @@ if ($DotnetPath) { $buildOptions.DotnetPath = $DotnetPath }
 
 $releaseRoot = Join-Path $projectRoot 'artifacts/release'
 New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
-$checksums = foreach ($package in @(
+foreach ($package in @(
     @{ Folder = 'win-x64'; Suffix = 'framework-dependent' },
     @{ Folder = 'win-x64-self-contained'; Suffix = 'self-contained' }
 )) {
     $name = "A2dpSinkRouter-$version-win-x64-$($package.Suffix).zip"
     $archive = Join-Path $releaseRoot $name
     Compress-Archive -Path (Join-Path $projectRoot "artifacts/$($package.Folder)/*") -DestinationPath $archive -Force
-    "$((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant())  $name"
 }
-[IO.File]::WriteAllLines((Join-Path $releaseRoot "SHA256-$version.txt"), [string[]]$checksums, [Text.UTF8Encoding]::new($false))
 Write-Output "Release packages: $releaseRoot"
