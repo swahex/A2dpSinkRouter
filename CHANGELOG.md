@@ -1,5 +1,11 @@
 # Changelog
 
+## Microsoft Store 1.4.3.0
+
+- Publish the self-contained x64 MSIX edition on [Microsoft Store](https://apps.microsoft.com/detail/9nh7kcmvkcv3), based on source version 0.4.3. Its application and package versions are both 1.4.3.0; portable releases remain 0.4.3.
+- Let Microsoft Store manage installation, updates and removal. Keep packaged settings/logs in the package's LocalCache directory, separate from portable data, with no automatic migration.
+- Preserve the existing WinForms, Bluetooth and WASAPI architecture, including the 0.4.3 reconnect fix and the shared per-session single-instance behavior. GitHub continues to provide both portable ZIP variants.
+
 ## 0.4.3
 
 - Fix an intermittent reconnect failure after manually disconnecting a phone, where the application reported that the Bluetooth connection closed before opening completed.

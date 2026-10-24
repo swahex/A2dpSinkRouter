@@ -6,7 +6,9 @@ Receive Bluetooth audio from your phone on Windows and play it through your pref
 
 **Built to reduce local audio-routing latency by bypassing Windows "Listen to this device".** A dedicated, event-driven WASAPI route replaces the built-in monitoring bridge, with adjustable buffering and direct output selection. No additional audio routing software is required.
 
-**[Download Latest Release](https://github.com/swahex/A2dpSinkRouter/releases/latest)**
+**[Get it from Microsoft Store](https://apps.microsoft.com/detail/9nh7kcmvkcv3)** · **[Download portable ZIP](https://github.com/swahex/A2dpSinkRouter/releases/latest)**
+
+Microsoft Store **1.4.3.0** and portable **0.4.3** share source baseline **0.4.3**. The Store manages installation, updates and removal; GitHub continues to provide self-contained and framework-dependent ZIPs.
 
 ![A2dpSinkRouter](images/main-window.png)
 
@@ -38,12 +40,12 @@ Windows can forward an A2DP input to a playback device through **Listen to this 
 
 - Windows 10 2004 (build 19041) or later, x64.
 - The PC must have working Bluetooth functionality and already be paired with the phone in Windows Bluetooth settings. The phone and Windows Bluetooth drivers must support A2DP reception.
-- **.NET 10 Desktop Runtime x64** for framework-dependent packages. Self-contained builds include the runtime.
+- **.NET 10 Desktop Runtime x64** is required only for framework-dependent ZIPs. The Store version and self-contained ZIPs include the runtime.
 - Pair the phone in Windows Bluetooth settings before use.
 
 ## Usage
 
-1. Extract the complete application package and keep its files together. Exit an older running version before upgrading.
+1. Install from Microsoft Store, or fully extract a portable ZIP and keep its files together. Exit any running copy before switching versions.
 2. On first launch, choose Simplified Chinese or English. Existing configurations skip this dialog.
 3. Select your phone and choose **Connect / reconnect**.
 4. Select its A2DP input and your desired output, choose **Start routing**, then play audio on the phone.
@@ -55,9 +57,15 @@ The default prebuffer target is 12 ms, adjustable from 5 to 100 ms. Stop routing
 
 Smaller buffers are more sensitive to packet arrival jitter and clock differences; the default does not guarantee stable playback on every device. If playback breaks up or the underrun count keeps rising, stop routing, increase the prebuffer (try 40 ms first), and restart routing. A larger buffer adds local waiting time.
 
-Portable ZIP settings and logs are stored in `%LOCALAPPDATA%\A2dpSinkRouter\`. Levels, frame counts, queue times, and device periods are diagnostic values, not end-to-end Bluetooth latency measurements.
+Levels, frame counts, queue times, and device periods are diagnostic values, not end-to-end Bluetooth latency measurements.
 
-This is a portable application. To remove it, exit from the tray and delete its extracted folder. To also clear saved settings and logs, remove `%LOCALAPPDATA%\A2dpSinkRouter\`; **Preferences → Open data folder** opens that location. Bluetooth pairings and separately installed .NET runtimes are managed by Windows.
+Portable ZIP settings and logs are stored in `%LOCALAPPDATA%\A2dpSinkRouter\`. To remove a portable copy, exit from the tray and delete its extracted folder. To also clear its settings and logs, delete that data directory.
+
+The Store version keeps settings and logs in its package's `LocalCache\A2dpSinkRouter` directory. Updates normally preserve this data; ordinary Windows uninstall or app reset removes package-managed data. Exit from the tray before an update. **Preferences → Open data folder** opens the active channel's data location. Bluetooth pairings, separately installed .NET runtimes and copies exported elsewhere remain managed separately.
+
+Portable and Store versions keep separate settings with no automatic migration, and share one instance per Windows session. Exit one before starting the other.
+
+The Store's “Uses all system resources” permission describes this full-trust desktop app running with standard user permissions. “Use your microphone” covers capture from the selected audio input, including other recording devices when enabled. Audio is processed locally; the app does not save recordings or upload audio.
 
 See the [privacy policy](PRIVACY.md) for information about local audio processing, settings and logs.
 
